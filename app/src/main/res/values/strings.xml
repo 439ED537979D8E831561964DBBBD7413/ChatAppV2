@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ChatApp</string>
+    <string name="general_notif_channel_name">General</string>
+    <string name="general_notif_channel_desc">Notifications related to your activity.</string>
+    <string name="chat_notif_channel_name">Chats</string>
+    <string name="chat_notif_channel_desc">Notifications related to your chats.</string>
+</resources>
