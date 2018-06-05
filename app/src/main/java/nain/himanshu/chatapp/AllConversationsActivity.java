@@ -45,7 +45,7 @@ public class AllConversationsActivity extends AppCompatActivity {
     private CustomSwipeRefresh mSwipeRefreshLayout;
 
     /*
-    TODO:this will listen to only new message for now, extend to typing.
+    TODO:this will listen to only new message for now, extend to typing and stop typing.
      */
     private Socket mSocket;
     private Emitter.Listener onNewMessage = new Emitter.Listener() {
@@ -164,14 +164,14 @@ public class AllConversationsActivity extends AppCompatActivity {
 
         mListView.setAdapter(mAdapter);
 
-        LOAD_DATA();
+        //LOAD_DATA();
     }
 
     private void SUBSCRIBE() {
 
         for (String id : mConversationIds){
             mSocket.emit("join", id);
-            Toast.makeText(getApplicationContext(),id,Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(),id,Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -179,7 +179,7 @@ public class AllConversationsActivity extends AppCompatActivity {
 
         mConversationIds.clear();
         mDataList.clear();
-        mAdapter.notifyDataSetChanged();
+        //mAdapter.notifyDataSetChanged();
         if(!mSwipeRefreshLayout.isRefreshing()){
             mSwipeRefreshLayout.setRefreshing(true);
         }
@@ -276,6 +276,7 @@ public class AllConversationsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        LOAD_DATA();
         mSocket.on("new message", onNewMessage);
         mSocket.on(Socket.EVENT_CONNECT, onConnect);
     }

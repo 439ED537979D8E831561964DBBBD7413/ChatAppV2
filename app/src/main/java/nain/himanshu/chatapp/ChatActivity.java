@@ -1,6 +1,7 @@
 package nain.himanshu.chatapp;
 
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
@@ -8,6 +9,8 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +47,8 @@ import okhttp3.internal.Util;
 
 public class ChatActivity extends AppCompatActivity {
 
-    private String USERID, CONVERSATIONID, OTHERID;
+    private String USERID, USERNAME, CONVERSATIONID, OTHERID;
+    private Boolean isConversationIdEmpty = true;
     private Bundle bundle;
 
     private Toolbar mToolbar;
@@ -60,14 +64,16 @@ public class ChatActivity extends AppCompatActivity {
     private RequestQueue mRequestQueue;
 
     /*
-    TODO:this will listen to only new message for now, extend to typing.
+    TODO:extend socket to listen for online
      */
     private Socket mSocket;
 
     @Override
     protected void onStart() {
         super.onStart();
-        USERID = getSharedPreferences(Config.LoginPrefs, MODE_PRIVATE).getString("id","");
+        SharedPreferences preferences = getSharedPreferences(Config.LoginPrefs, MODE_PRIVATE);
+        USERID = preferences.getString("id","");
+        USERNAME = preferences.getString("name","");
         mSocket = MyApplication.getSocket();
         if(!mSocket.connected()){
             mSocket.connect();
@@ -127,12 +133,46 @@ public class ChatActivity extends AppCompatActivity {
         }
     };
 
+    private Emitter.Listener onTyping = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+
+            String name = (String) args[0];
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTyping.setVisibility(View.VISIBLE);
+                    mTyping.setText("typing...");
+                }
+            });
+
+        }
+    };
+
+    private Emitter.Listener onStopTyping = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTyping.setText("");
+                    mTyping.setVisibility(View.GONE);
+                }
+            });
+
+        }
+    };
+
     @Override
     protected void onResume() {
         super.onResume();
 
         mSocket.on("new message", onNewMessage);
         mSocket.on(Socket.EVENT_CONNECT, onConnect);
+        mSocket.on("typing", onTyping);
+        mSocket.on("stop typing", onStopTyping);
     }
 
     @Override
@@ -140,6 +180,8 @@ public class ChatActivity extends AppCompatActivity {
         super.onPause();
         mSocket.off("new message", onNewMessage);
         mSocket.off(Socket.EVENT_CONNECT, onConnect);
+        mSocket.off("typing", onTyping);
+        mSocket.off("stop typing", onStopTyping);
     }
 
     @Override
@@ -153,6 +195,9 @@ public class ChatActivity extends AppCompatActivity {
             CONVERSATIONID = bundle.getString("conversationId");
             if(CONVERSATIONID == null || CONVERSATIONID.isEmpty()){
                 OTHERID = bundle.getString("other_id");
+                isConversationIdEmpty = true;
+            }else {
+                isConversationIdEmpty = false;
             }
 
         }else {
@@ -187,6 +232,39 @@ public class ChatActivity extends AppCompatActivity {
         mLayoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
         mMessage = findViewById(R.id.message);
+        mMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if(!isConversationIdEmpty){
+
+                    if(!String.valueOf(s).isEmpty()){
+                        JSONObject data = new JSONObject();
+                        try {
+                            data.put("name",USERNAME);
+                            data.put("conversationId", CONVERSATIONID);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        mSocket.emit("typing", data);
+                    }else {
+                        mSocket.emit("stop typing", CONVERSATIONID);
+                    }
+                }
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
         mSend = findViewById(R.id.send);
 
         mSend.setOnClickListener(onSendClickListener);
@@ -281,6 +359,7 @@ public class ChatActivity extends AppCompatActivity {
                 }else {
 
                     attemptSendMessage(message);
+                    mSocket.emit("stop typing", CONVERSATIONID);
 
                 }
 
@@ -378,6 +457,8 @@ public class ChatActivity extends AppCompatActivity {
                                 mMessage.setText("");
 
                                 CONVERSATIONID = response.getString("conversationId");
+
+                                isConversationIdEmpty = false;
 
                                 addSelfMessage(message, null);
 

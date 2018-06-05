@@ -23,8 +23,11 @@
             android:name=".AllConversationsActivity"
             android:label="All Conversations" />
         <activity
+            android:parentActivityName=".AllConversationsActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:name=".ChatActivity"></activity>
+            android:name=".ChatActivity">
+
+        </activity>
     </application>
 
 </manifest>
