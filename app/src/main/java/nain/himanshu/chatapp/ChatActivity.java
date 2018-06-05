@@ -51,9 +51,7 @@ public class ChatActivity extends AppCompatActivity {
     private Boolean isConversationIdEmpty = true;
     private Bundle bundle;
 
-    private Toolbar mToolbar;
-    private TextView mOtherName, mTyping;
-    private CircleImageView mOtherProfilePic;
+    private TextView mTyping;
 
     private LinearLayout mChatLayout;
     private LayoutInflater mLayoutInflater;
@@ -206,14 +204,14 @@ public class ChatActivity extends AppCompatActivity {
 
         }
 
-        mToolbar = findViewById(R.id.toolbar);
+        Toolbar mToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         mTyping = findViewById(R.id.typing);
         mTyping.setVisibility(View.GONE);
 
-        mOtherName = findViewById(R.id.name);
+        TextView mOtherName = findViewById(R.id.name);
         mOtherName.setText(bundle.getString("other_name"));
-        mOtherProfilePic = findViewById(R.id.profilePic);
+        CircleImageView mOtherProfilePic = findViewById(R.id.profilePic);
 
         if(!(Objects.requireNonNull(bundle.getString("other_pic")).isEmpty())){
 

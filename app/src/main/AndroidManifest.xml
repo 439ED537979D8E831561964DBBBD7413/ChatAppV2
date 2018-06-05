@@ -23,9 +23,12 @@
             android:name=".AllConversationsActivity"
             android:label="All Conversations" />
         <activity
+            android:name=".ChatActivity"
             android:parentActivityName=".AllConversationsActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:name=".ChatActivity">
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".SelectContactActivity"
+            android:parentActivityName=".AllConversationsActivity">
 
         </activity>
     </application>

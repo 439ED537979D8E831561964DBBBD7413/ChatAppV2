@@ -1,5 +1,6 @@
 package nain.himanshu.chatapp;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -12,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -22,6 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -29,11 +32,13 @@ import java.util.List;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import nain.himanshu.chatapp.Adapters.AllConversationsAdapter;
+import nain.himanshu.chatapp.Adapters.SelectContactAdapter;
 import nain.himanshu.chatapp.DataModels.ConversationData;
 import okhttp3.internal.Util;
 
 public class AllConversationsActivity extends AppCompatActivity {
 
+    private static final int CHOOSE_USER = 293;
     private String USERID;
 
     private HashSet<String> mConversationIds;
@@ -44,6 +49,7 @@ public class AllConversationsActivity extends AppCompatActivity {
     private FloatingActionButton mFab;
     private CustomSwipeRefresh mSwipeRefreshLayout;
 
+    private RequestQueue mRequestQueue;
     /*
     TODO:this will listen to only new message for now, extend to typing and stop typing.
      */
@@ -133,18 +139,107 @@ public class AllConversationsActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
-            /*
-            TODO:Start choose new user activity
-             */
+            Intent intent = new Intent(AllConversationsActivity.this, SelectContactActivity.class);
+            intent.putExtra("user_id", USERID);
+            startActivityForResult(intent, CHOOSE_USER);
 
         }
     };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, final Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if(requestCode == CHOOSE_USER){
+
+            if(resultCode == RESULT_OK){
+
+                final ProgressDialog dialog = new ProgressDialog(AllConversationsActivity.this);
+                dialog.setMessage("Starting Chat...");
+                dialog.setCancelable(false);
+                dialog.show();
+
+                final Bundle selected_user_data = intent.getExtras();
+
+                JSONObject params = new JSONObject();
+                try {
+                    params.put("current_user", USERID);
+                    assert selected_user_data != null;
+                    params.put("target_user", selected_user_data.getString("other_id"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                JsonObjectRequest request = new JsonObjectRequest(
+                        Request.Method.POST,
+                        Config.HAS_CONVERSATION,
+                        params,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                dialog.dismiss();
+
+                                try {
+                                    if(response.getBoolean("success")){
+
+                                        if(response.getBoolean("exists")){
+
+                                            //conversation already there
+                                            Bundle bundle = new Bundle();
+                                            bundle.putString("conversationId", response.getString("id"));
+                                            bundle.putString("other_name", selected_user_data.getString("other_name"));
+                                            bundle.putString("other_pic", selected_user_data.getString("other_pic"));
+
+                                            Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                                            intent.putExtras(bundle);
+                                            startActivity(intent);
+
+                                        }else {
+
+                                            Bundle bundle = new Bundle();
+                                            bundle.putString("conversationId", null);
+                                            bundle.putString("other_name", selected_user_data.getString("other_name"));
+                                            bundle.putString("other_pic", selected_user_data.getString("other_pic"));
+                                            bundle.putString("other_id", selected_user_data.getString("other_id"));
+
+                                            Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                                            intent.putExtras(bundle);
+                                            startActivity(intent);
+
+                                        }
+
+                                    }else {
+                                        Toast.makeText(getApplicationContext(), "Could not start conversation", Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                dialog.dismiss();
+                                Log.e("START NEW CHAT ERROR", error.toString());
+                                Toast.makeText(getApplicationContext(), "Network error", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                );
+                mRequestQueue.add(request);
+
+            }
+
+        }
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_conversations);
 
+        mRequestQueue = Volley.newRequestQueue(this);
         mConversationIds = new HashSet<>();
         mDataList = new ArrayList<>();
         mAdapter = new AllConversationsAdapter(mDataList, this);
@@ -263,7 +358,7 @@ public class AllConversationsActivity extends AppCompatActivity {
                     }
                 }
         );
-        Volley.newRequestQueue(this).add(request);
+       mRequestQueue.add(request);
     }
 
     @Override
