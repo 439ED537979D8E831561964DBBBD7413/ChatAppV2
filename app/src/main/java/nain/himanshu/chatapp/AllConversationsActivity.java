@@ -41,7 +41,14 @@ public class AllConversationsActivity extends AppCompatActivity {
     private static final int CHOOSE_USER = 293;
     private String USERID;
 
-    private HashSet<String> mConversationIds;
+    //Service related
+
+    private boolean mBounded;
+    private NotificationService mService;
+
+    private HashMap<String, String> mConversationLogs;
+
+    //private HashSet<String> mConversationIds;
     private List<ConversationData> mDataList;
     private AllConversationsAdapter mAdapter;
 
@@ -70,10 +77,12 @@ public class AllConversationsActivity extends AppCompatActivity {
                     try {
 
                         String conversationId = data.getString("conversationId");
-                        String name = data.getString("author");
+                        String name = data.getString("name");
+                        String userId = data.getString("author");
                         String message = data.getString("message");
 
-                        if(mConversationIds.contains(conversationId)){
+                        //if(mConversationIds.contains(conversationId)){
+                        if(mConversationLogs.containsValue(conversationId)){
 
                             /*
                                conversation is listed
@@ -99,6 +108,7 @@ public class AllConversationsActivity extends AppCompatActivity {
                             /*
                                 conversations not listed
                              */
+                            mConversationLogs.put(userId, conversationId);
                             ConversationData newConvo = new ConversationData();
                             newConvo.setConversationId(conversationId);
                             newConvo.setOtherName(name);
@@ -154,80 +164,93 @@ public class AllConversationsActivity extends AppCompatActivity {
 
             if(resultCode == RESULT_OK){
 
-                final ProgressDialog dialog = new ProgressDialog(AllConversationsActivity.this);
-                dialog.setMessage("Starting Chat...");
-                dialog.setCancelable(false);
-                dialog.show();
-
                 final Bundle selected_user_data = intent.getExtras();
+                assert selected_user_data != null;
 
-                JSONObject params = new JSONObject();
-                try {
-                    params.put("current_user", USERID);
-                    assert selected_user_data != null;
-                    params.put("target_user", selected_user_data.getString("other_id"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                if(mConversationLogs.containsKey(selected_user_data.getString("other_id"))){
 
-                JsonObjectRequest request = new JsonObjectRequest(
-                        Request.Method.POST,
-                        Config.HAS_CONVERSATION,
-                        params,
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                dialog.dismiss();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("conversationId", mConversationLogs.get(selected_user_data.getString("other_id")));
+                    bundle.putString("other_name", selected_user_data.getString("other_name"));
+                    bundle.putString("other_pic", selected_user_data.getString("other_pic"));
 
-                                try {
-                                    if(response.getBoolean("success")){
+                    Intent in = new Intent(getApplicationContext(), ChatActivity.class);
+                    in.putExtras(bundle);
+                    startActivity(in);
 
-                                        if(response.getBoolean("exists")){
+                }else {
 
-                                            //conversation already there
-                                            Bundle bundle = new Bundle();
-                                            bundle.putString("conversationId", response.getString("id"));
-                                            bundle.putString("other_name", selected_user_data.getString("other_name"));
-                                            bundle.putString("other_pic", selected_user_data.getString("other_pic"));
+                    final ProgressDialog dialog = new ProgressDialog(AllConversationsActivity.this);
+                    dialog.setMessage("Starting Chat...");
+                    dialog.setCancelable(false);
+                    dialog.show();
+                    JSONObject params = new JSONObject();
+                    try {
+                        params.put("current_user", USERID);
+                        params.put("target_user", selected_user_data.getString("other_id"));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
-                                            Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-                                            intent.putExtras(bundle);
-                                            startActivity(intent);
+                    JsonObjectRequest request = new JsonObjectRequest(
+                            Request.Method.POST,
+                            Config.HAS_CONVERSATION,
+                            params,
+                            new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(JSONObject response) {
+                                    dialog.dismiss();
+
+                                    try {
+                                        if(response.getBoolean("success")){
+
+                                            if(response.getBoolean("exists")){
+
+                                                //conversation already there
+                                                Bundle bundle = new Bundle();
+                                                bundle.putString("conversationId", response.getString("id"));
+                                                bundle.putString("other_name", selected_user_data.getString("other_name"));
+                                                bundle.putString("other_pic", selected_user_data.getString("other_pic"));
+
+                                                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                                                intent.putExtras(bundle);
+                                                startActivity(intent);
+
+                                            }else {
+
+                                                Bundle bundle = new Bundle();
+                                                bundle.putString("conversationId", null);
+                                                bundle.putString("other_name", selected_user_data.getString("other_name"));
+                                                bundle.putString("other_pic", selected_user_data.getString("other_pic"));
+                                                bundle.putString("other_id", selected_user_data.getString("other_id"));
+
+                                                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                                                intent.putExtras(bundle);
+                                                startActivity(intent);
+
+                                            }
 
                                         }else {
-
-                                            Bundle bundle = new Bundle();
-                                            bundle.putString("conversationId", null);
-                                            bundle.putString("other_name", selected_user_data.getString("other_name"));
-                                            bundle.putString("other_pic", selected_user_data.getString("other_pic"));
-                                            bundle.putString("other_id", selected_user_data.getString("other_id"));
-
-                                            Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-                                            intent.putExtras(bundle);
-                                            startActivity(intent);
-
+                                            Toast.makeText(getApplicationContext(), "Could not start conversation", Toast.LENGTH_SHORT).show();
                                         }
-
-                                    }else {
-                                        Toast.makeText(getApplicationContext(), "Could not start conversation", Toast.LENGTH_SHORT).show();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
                                     }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+
                                 }
-
+                            },
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    dialog.dismiss();
+                                    Log.e("START NEW CHAT ERROR", error.toString());
+                                    Toast.makeText(getApplicationContext(), "Network error", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                dialog.dismiss();
-                                Log.e("START NEW CHAT ERROR", error.toString());
-                                Toast.makeText(getApplicationContext(), "Network error", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                );
-                mRequestQueue.add(request);
+                    );
+                    mRequestQueue.add(request);
 
+                }
             }
 
         }
@@ -240,7 +263,8 @@ public class AllConversationsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_all_conversations);
 
         mRequestQueue = Volley.newRequestQueue(this);
-        mConversationIds = new HashSet<>();
+        //mConversationIds = new HashSet<>();
+        mConversationLogs = new HashMap<>();
         mDataList = new ArrayList<>();
         mAdapter = new AllConversationsAdapter(mDataList, this);
 
@@ -264,15 +288,20 @@ public class AllConversationsActivity extends AppCompatActivity {
 
     private void SUBSCRIBE() {
 
-        for (String id : mConversationIds){
+        for (String id : mConversationLogs.values()){
+            mSocket.emit("join", id);
+        }
+
+        /*for (String id : mConversationIds){
             mSocket.emit("join", id);
             //Toast.makeText(getApplicationContext(),id,Toast.LENGTH_SHORT).show();
-        }
+        }*/
     }
 
     private void LOAD_DATA() {
 
-        mConversationIds.clear();
+        //mConversationIds.clear();
+        mConversationLogs.clear();
         mDataList.clear();
         //mAdapter.notifyDataSetChanged();
         if(!mSwipeRefreshLayout.isRefreshing()){
@@ -322,11 +351,18 @@ public class AllConversationsActivity extends AppCompatActivity {
                                         conversationData = new ConversationData();
 
                                         String id = latest.getString("conversationId");
-                                        mConversationIds.add(id);
+
+                                        //add conversation
+                                       // mConversationIds.add(id);
+
                                         conversationData.setConversationId(id);
                                         conversationData.setLatestMessage(latest.getString("body"));
                                         conversationData.setOtherName(user.getString("name"));
                                         conversationData.setOtherProfilePic(user.getString("profilePic"));
+
+                                        //add userid:conversation
+                                        mConversationLogs.put(user.getString("_id"),id);
+
                                         mDataList.add(conversationData);
                                         conversationData = null;
                                         latest = null;
@@ -384,5 +420,6 @@ public class AllConversationsActivity extends AppCompatActivity {
         if(!mSocket.connected()){
             mSocket.connect();
         }
+
     }
 }
