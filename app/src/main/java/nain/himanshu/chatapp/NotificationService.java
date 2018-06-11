@@ -7,6 +7,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +24,7 @@ public class NotificationService extends Service {
 
     private final IBinder myBinder = new LocalBinder();
 
-    public boolean isInstanceCreated() {
+    public static boolean isInstanceCreated() {
         return instance != null;
     }
 
@@ -49,7 +50,8 @@ public class NotificationService extends Service {
         super.onCreate();
         USERID = getApplicationContext().getSharedPreferences(Config.LoginPrefs, MODE_PRIVATE).getString("id","");
         mSocket = MyApplication.getSocket();
-
+        mSocket.on("new message", onNewMessage);
+        mSocket.on(Socket.EVENT_CONNECT, onConnect);
     }
 
     @SuppressLint("WrongConstant")
@@ -76,6 +78,18 @@ public class NotificationService extends Service {
         }
     }
 
+    private Emitter.Listener onConnect = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            new Handler(getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    mSocket.emit("log me", USERID);
+                }
+            });
+        }
+    };
+
     private Emitter.Listener onNewMessage = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -85,7 +99,7 @@ public class NotificationService extends Service {
                     new Runnable() {
                         @Override
                         public void run() {
-
+                            Toast.makeText(getApplicationContext(), "Message recieved", Toast.LENGTH_SHORT).show();
 
                             try {
                                 /*
@@ -110,7 +124,7 @@ public class NotificationService extends Service {
 
         }
     };
-    private void listenToChat(boolean listen){
+    public void listenToChat(boolean listen){
         if(listen){
             mSocket.on("new message", onNewMessage);
         }else {
@@ -124,6 +138,8 @@ public class NotificationService extends Service {
 
         //Off all events
 
+        mSocket.off("new message", onNewMessage);
+        mSocket.off(Socket.EVENT_CONNECT, onConnect);
         disconnectConnection();
     }
 }

@@ -2,9 +2,17 @@ package nain.himanshu.chatapp.DataModels;
 
 public class ConversationData {
 
-    private String conversationId, otherName, otherProfilePic, latestMessage;
+    private String conversationId, otherName, otherProfilePic, latestMessage, time;
 
     public ConversationData() {
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public String getConversationId() {

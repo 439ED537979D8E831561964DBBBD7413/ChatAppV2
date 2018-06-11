@@ -299,17 +299,18 @@ public class ChatActivity extends AppCompatActivity {
 
                                 JSONArray array = response.getJSONArray("conversation");
                                 JSONObject message;
-                                String body, author;
+                                String body, author, time;
 
                                 for (int i=0; i<array.length();i++){
 
                                     message = array.getJSONObject(i);
                                     body = message.getString("body");
                                     author = message.getString("author");
+                                    time = message.getString("createdAt");
                                     if(author.equals(USERID)){
-                                        addSelfMessage(body, null);
+                                        addSelfMessage(body, Utils.getTime(time));
                                     }else {
-                                        addOtherMessage(body, null);
+                                        addOtherMessage(body, Utils.getTime(time));
                                     }
 
                                 }
@@ -398,7 +399,11 @@ public class ChatActivity extends AppCompatActivity {
 
                                 mSocket.emit("new message", object);
 
-                                addSelfMessage(message, null);
+                                if (response.has("time")) {
+                                    addSelfMessage(message, Utils.getTime(response.getString("time")));
+                                }else {
+                                    addSelfMessage(message, null);
+                                }
 
                             }else {
 
@@ -458,7 +463,11 @@ public class ChatActivity extends AppCompatActivity {
 
                                 isConversationIdEmpty = false;
 
-                                addSelfMessage(message, null);
+                                if (response.has("time")) {
+                                    addSelfMessage(message, Utils.getTime(response.getString("time")));
+                                }else {
+                                    addSelfMessage(message, null);
+                                }
 
                                 //join room
                                 mSocket.emit("join", CONVERSATIONID);
@@ -485,9 +494,6 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
-    /*
-    TODO:IGNORING MESSAGE TIME FOR NOW ADD LATER
-     */
     private void addSelfMessage(@NonNull String message, @Nullable String time){
 
         View view = mLayoutInflater.inflate(R.layout.self_message, null);
@@ -501,11 +507,11 @@ public class ChatActivity extends AppCompatActivity {
             mTime.setText(time);
         }
 
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(350, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(350, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(5,5,5,5);
-        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        params.gravity = Gravity.END;
+        view.setPadding(5,5,5,5);
         mChatLayout.addView(view, params);
-        view.requestFocus();
     }
 
     private void addOtherMessage(@NonNull String message, @Nullable String time){
@@ -519,10 +525,10 @@ public class ChatActivity extends AppCompatActivity {
         }else {
             mTime.setText(time);
         }
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(350, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(350, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(5,5,5,5);
+        view.setPadding(5,5,5,5);
         mChatLayout.addView(view, params);
-        view.requestFocus();
 
     }
 }

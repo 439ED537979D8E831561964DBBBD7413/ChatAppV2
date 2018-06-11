@@ -20,6 +20,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import nain.himanshu.chatapp.ChatActivity;
 import nain.himanshu.chatapp.DataModels.ConversationData;
 import nain.himanshu.chatapp.R;
+import nain.himanshu.chatapp.Utils;
 
 public class AllConversationsAdapter extends BaseAdapter {
 
@@ -60,6 +61,7 @@ public class AllConversationsAdapter extends BaseAdapter {
         CircleImageView mProfilePic = view.findViewById(R.id.profilePic);
         TextView mName = view.findViewById(R.id.name);
         TextView mMessage = view.findViewById(R.id.latestMessage);
+        TextView mTime = view.findViewById(R.id.time);
         LinearLayout mainLayout = view.findViewById(R.id.parentLayout);
 
         ConversationData data = mDataList.get(position);
@@ -77,6 +79,7 @@ public class AllConversationsAdapter extends BaseAdapter {
 
         mName.setText(data.getOtherName());
         mMessage.setText(data.getLatestMessage());
+        mTime.setText(Utils.getTime(data.getTime()));
         mainLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

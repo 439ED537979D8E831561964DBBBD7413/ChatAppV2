@@ -1,5 +1,6 @@
 package nain.himanshu.chatapp;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -8,16 +9,23 @@ import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
+import java.sql.Time;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
+import java.util.TimeZone;
 
 public class Utils {
 
     /*
     TODO:ADD IN APP
      */
-    public static void createNotificationChannels(Context context){
+    public static void createNotificationChannels(Context context) {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel channel1 = new NotificationChannel(Config.GENERAL_NOTIF_CHANNEL, "General", NotificationManager.IMPORTANCE_DEFAULT),
@@ -33,7 +41,7 @@ public class Utils {
 
     }
 
-    public static void sendNotification(String title, String message, String Channel, Context context){
+    public static void sendNotification(String title, String message, String Channel, Context context) {
 
         /*
             TODO:Improve notification to open chat
@@ -53,4 +61,27 @@ public class Utils {
         notificationManagerCompat.notify(new Random().nextInt(), mBuilder.build());
     }
 
+    public static String getTime(String dateTime) {
+
+        dateTime = dateTime.replace("T"," ");
+        dateTime = dateTime.replace("Z","");
+        @SuppressLint("SimpleDateFormat")
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        inputFormat.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
+
+        @SuppressLint("SimpleDateFormat")
+        //SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy h:mm a");
+        SimpleDateFormat outputFormat = new SimpleDateFormat("h:mm a");
+        outputFormat.setTimeZone(TimeZone.getDefault());
+
+        try {
+            Date date = inputFormat.parse(dateTime);
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+
+    }
 }

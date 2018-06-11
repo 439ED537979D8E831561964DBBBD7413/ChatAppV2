@@ -331,7 +331,7 @@ public class AllConversationsActivity extends AppCompatActivity {
                             if(response.getBoolean("success")){
 
                                 //notify no. of conversations
-                                Toast.makeText(getApplicationContext(), String.valueOf(response.getInt("numConversations") + " Conversations"), Toast.LENGTH_SHORT).show();
+                                //Toast.makeText(getApplicationContext(), String.valueOf(response.getInt("numConversations") + " Conversations"), Toast.LENGTH_SHORT).show();
 
                                 if(response.getInt("numConversations")==0){
                                     /*
@@ -357,6 +357,7 @@ public class AllConversationsActivity extends AppCompatActivity {
 
                                         conversationData.setConversationId(id);
                                         conversationData.setLatestMessage(latest.getString("body"));
+                                        conversationData.setTime(latest.getString("createdAt"));
                                         conversationData.setOtherName(user.getString("name"));
                                         conversationData.setOtherProfilePic(user.getString("profilePic"));
 

@@ -26,11 +26,25 @@ public class LoginActivity extends AppCompatActivity {
     private EditText mPhone, mName;
     private Button mLogin;
 
+    private SharedPreferences preferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         Utils.createNotificationChannels(this);
+
+        preferences = getSharedPreferences(Config.LoginPrefs, MODE_PRIVATE);
+        if(preferences.getBoolean("status", false)){
+            if(!NotificationService.isInstanceCreated()){
+                Intent intent = new Intent(this, NotificationService.class);
+                startService(intent);
+            }
+            finish();
+            startActivity(new Intent(
+                    this, AllConversationsActivity.class
+            ));
+        }
 
         mPhone = findViewById(R.id.phone);
         mName = findViewById(R.id.name);
@@ -70,11 +84,17 @@ public class LoginActivity extends AppCompatActivity {
                         try {
                             if(response.getBoolean("success")){
 
-                                SharedPreferences preferences = getSharedPreferences(Config.LoginPrefs, MODE_PRIVATE);
+                                preferences = getSharedPreferences(Config.LoginPrefs, MODE_PRIVATE);
                                 SharedPreferences.Editor editor = preferences.edit();
                                 editor.putString("id", response.getString("id"));
                                 editor.putString("name", response.getString("name"));
+                                editor.putBoolean("status", true);
                                 editor.apply();
+
+                                if(!NotificationService.isInstanceCreated()){
+                                    Intent intent = new Intent(LoginActivity.this, NotificationService.class);
+                                    startService(intent);
+                                }
 
                                 finish();
                                 startActivity(new Intent(
