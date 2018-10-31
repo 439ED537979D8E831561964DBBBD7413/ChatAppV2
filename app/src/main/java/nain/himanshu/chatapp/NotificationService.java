@@ -99,7 +99,7 @@ public class NotificationService extends Service {
                     new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getApplicationContext(), "Message recieved", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getApplicationContext(), "Message recieved", Toast.LENGTH_SHORT).show();
 
                             try {
                                 /*
@@ -124,13 +124,6 @@ public class NotificationService extends Service {
 
         }
     };
-    public void listenToChat(boolean listen){
-        if(listen){
-            mSocket.on("new message", onNewMessage);
-        }else {
-            mSocket.off("new message", onNewMessage);
-        }
-    }
 
     @Override
     public void onDestroy() {
@@ -138,8 +131,8 @@ public class NotificationService extends Service {
 
         //Off all events
 
-        mSocket.off("new message", onNewMessage);
-        mSocket.off(Socket.EVENT_CONNECT, onConnect);
+        mSocket.off("new message");
+        mSocket.off(Socket.EVENT_CONNECT);
         disconnectConnection();
     }
 }

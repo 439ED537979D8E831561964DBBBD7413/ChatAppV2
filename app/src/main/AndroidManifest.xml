@@ -3,7 +3,7 @@
     package="nain.himanshu.chatapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".MyApplication"
@@ -13,11 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <service android:name=".NotificationService" />
 
-        <service android:name=".NotificationService"/>
         <receiver android:name=".InternetChecker">
             <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
 
@@ -34,10 +34,15 @@
         <activity
             android:name=".ChatActivity"
             android:parentActivityName=".AllConversationsActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
+            android:label="Select Contact"
             android:name=".SelectContactActivity"
-            android:parentActivityName=".AllConversationsActivity"/>
+            android:parentActivityName=".AllConversationsActivity" />
+        <activity
+            android:parentActivityName=".AllConversationsActivity"
+            android:label="Profile"
+            android:name=".ProfileActivity"/>
     </application>
 
 </manifest>

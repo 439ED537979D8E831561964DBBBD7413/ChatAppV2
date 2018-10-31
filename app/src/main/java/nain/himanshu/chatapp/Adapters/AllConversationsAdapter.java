@@ -79,7 +79,11 @@ public class AllConversationsAdapter extends BaseAdapter {
 
         mName.setText(data.getOtherName());
         mMessage.setText(data.getLatestMessage());
-        mTime.setText(Utils.getTime(data.getTime()));
+        if(data.getTime()==null){
+            mTime.setText("");
+        }else {
+            mTime.setText(Utils.getTime(data.getTime()));
+        }
         mainLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

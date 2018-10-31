@@ -6,6 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#efefef"
     tools:context=".ChatActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -24,12 +25,9 @@
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/profilePic"
-                android:layout_width="50dp"
-                app:civ_border_width=".5dp"
-                app:civ_border_color="#FFF"
-                android:padding="3dp"
+                android:layout_width="40dp"
                 android:src="@drawable/demo_photo"
-                android:layout_height="50dp" />
+                android:layout_height="40dp" />
 
             <LinearLayout
                 android:padding="3dp"
@@ -40,6 +38,7 @@
                 <TextView
                     android:id="@+id/name"
                     tools:text="Himanshu Nain"
+                    android:textColor="#FFFFFF"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:layout_width="match_parent"
@@ -48,6 +47,7 @@
                 <TextView
                     android:id="@+id/typing"
                     tools:text="typing..."
+                    android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
@@ -81,19 +81,24 @@
 
     <LinearLayout
         android:id="@+id/send_layout"
+        android:background="@drawable/background_edt_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal">
 
         <EditText
+            android:elevation="1dp"
             android:id="@+id/message"
             android:layout_width="0dp"
-            android:padding="3dp"
+            android:padding="5dp"
+            android:layout_margin="3dp"
             android:layout_weight=".8"
+            android:background="#00000000"
+            android:maxLines="6"
             android:hint="Enter a message..."
             android:inputType="textMultiLine"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/send"

@@ -6,7 +6,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_gravity="end"
-    android:padding="5dp"
     android:layout_margin="5dp"
     android:maxWidth="350dp"
     android:layout_width="wrap_content"
@@ -14,6 +13,8 @@
 
     <TextView
         android:id="@+id/message"
+        android:textColor="#fff"
+        android:textIsSelectable="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="This is a sample message"
@@ -21,6 +22,7 @@
         />
     <TextView
         android:id="@+id/time"
+        android:textColor="#fff"
         android:layout_marginTop="5dp"
         android:layout_gravity="end"
         android:textSize="12sp"

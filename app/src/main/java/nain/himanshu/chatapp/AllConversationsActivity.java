@@ -1,12 +1,18 @@
 package nain.himanshu.chatapp;
 
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -114,6 +120,7 @@ public class AllConversationsActivity extends AppCompatActivity {
                             newConvo.setOtherName(name);
                             newConvo.setOtherProfilePic(data.getString("profilePic"));
                             newConvo.setLatestMessage(message);
+                            newConvo.setTime(null);
 
                             mDataList.add(newConvo);
                             mAdapter.notifyDataSetChanged();
@@ -155,6 +162,37 @@ public class AllConversationsActivity extends AppCompatActivity {
 
         }
     };
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.mainmenu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()){
+
+            case R.id.ac_profile:
+                startActivity(new Intent(this, ProfileActivity.class));
+                break;
+
+            case R.id.ac_logout:
+
+                SharedPreferences.Editor editor = getSharedPreferences(Config.LoginPrefs, MODE_PRIVATE).edit();
+                editor.clear();
+                editor.apply();
+                finish();
+                startActivity(new Intent(this, LoginActivity.class));
+
+                break;
+        }
+
+        return true;
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, final Intent intent) {
@@ -401,16 +439,17 @@ public class AllConversationsActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        mSocket.off("new message", onNewMessage);
-        mSocket.off(Socket.EVENT_CONNECT, onConnect);
+        mSocket.off("new message", this.onNewMessage);
+        mSocket.off(Socket.EVENT_CONNECT, this.onConnect);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         LOAD_DATA();
-        mSocket.on("new message", onNewMessage);
-        mSocket.on(Socket.EVENT_CONNECT, onConnect);
+        mSocket.on(Socket.EVENT_CONNECT, this.onConnect);
+        mSocket.on("new message", this.onNewMessage);
+
     }
 
     @Override
@@ -421,6 +460,5 @@ public class AllConversationsActivity extends AppCompatActivity {
         if(!mSocket.connected()){
             mSocket.connect();
         }
-
     }
 }

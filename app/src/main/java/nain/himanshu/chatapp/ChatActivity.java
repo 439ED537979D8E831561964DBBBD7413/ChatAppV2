@@ -206,6 +206,7 @@ public class ChatActivity extends AppCompatActivity {
 
         Toolbar mToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mTyping = findViewById(R.id.typing);
         mTyping.setVisibility(View.GONE);
 
