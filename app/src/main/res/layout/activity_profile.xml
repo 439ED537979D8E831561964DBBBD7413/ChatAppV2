@@ -52,7 +52,7 @@
                 <TextView
                     android:gravity="center_vertical"
                     android:id="@+id/name"
-                    tools:text="Virat kohli"
+                    tools:text="Himanshu Nain"
                     android:textColor="#000"
                     android:textSize="20sp"
                     android:layout_width="0dp"
@@ -99,7 +99,7 @@
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:id="@+id/status"
-                    tools:text="Virat kohli"
+                    tools:text="Sleeping"
                     android:textColor="#000"
                     android:padding="10dp"
                     android:textSize="18sp"
